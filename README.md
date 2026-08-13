@@ -72,8 +72,10 @@ Estrutura pública atual:
 ├── pyproject.toml
 ├── src/
 │   └── nfce_purchase_analyzer/
-│       └── __init__.py
+│       ├── __init__.py
+│       └── deterministic.py
 └── tests/
+    ├── test_deterministic.py
     └── test_package.py
 ```
 
