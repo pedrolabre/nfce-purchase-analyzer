@@ -6,6 +6,9 @@ import pytest
 
 from nfce_purchase_analyzer.domain import (
     Category,
+    ImportPreview,
+    PendingPurchaseImport,
+    PendingPurchaseItem,
     Product,
     ProductIdentity,
     Purchase,
@@ -21,6 +24,21 @@ OTHER_STORE_ID = uuid.UUID("11111111-1111-1111-1111-111111111112")
 PURCHASE_ID = uuid.UUID("22222222-2222-2222-2222-222222222222")
 CATEGORY_ID = uuid.UUID("33333333-3333-3333-3333-333333333333")
 PARENT_CATEGORY_ID = uuid.UUID("44444444-4444-4444-4444-444444444444")
+
+
+def _pending_item(
+    *,
+    store_id: uuid.UUID = STORE_ID,
+    internal_code: str = "123",
+) -> PendingPurchaseItem:
+    return PendingPurchaseItem(
+        store_id=store_id,
+        internal_code=internal_code,
+        raw_name="Cafe Torrado 500g",
+        quantity=Decimal("1"),
+        unit_price=Decimal("15.00"),
+        total_price=Decimal("15.00"),
+    )
 
 
 def test_store_normalizes_uuid_and_required_text() -> None:
@@ -73,6 +91,70 @@ def test_purchase_item_normalizes_values() -> None:
     assert item.quantity == Decimal("0.346")
     assert item.unit_price == Decimal("10.13")
     assert item.total_price == Decimal("3.49")
+
+
+def test_pending_purchase_item_normalizes_values_and_identity() -> None:
+    item = PendingPurchaseItem(
+        store_id=str(STORE_ID),
+        internal_code=" 7891000100103 ",
+        raw_name=" Arroz Branco 5kg ",
+        quantity=Decimal("0.3456"),
+        unit_price=Decimal("10.125"),
+        total_price=Decimal("3.494"),
+    )
+
+    assert item.store_id == STORE_ID
+    assert item.internal_code == "7891000100103"
+    assert item.raw_name == "Arroz Branco 5kg"
+    assert item.quantity == Decimal("0.346")
+    assert item.unit_price == Decimal("10.13")
+    assert item.total_price == Decimal("3.49")
+    assert item.product_identity == ProductIdentity(
+        store_id=STORE_ID,
+        internal_code="7891000100103",
+    )
+    assert not hasattr(item, "purchase_id")
+
+
+def test_pending_purchase_import_normalizes_metadata_and_derives_preview() -> None:
+    purchased_at = datetime(2026, 8, 13, 10, 30)
+    item = _pending_item()
+
+    pending_import = PendingPurchaseImport(
+        store_id=str(STORE_ID),
+        date=purchased_at,
+        total_value=Decimal("15.005"),
+        source_pdf=" notas/compra.pdf ",
+        items=[item],
+    )
+    preview = pending_import.preview
+
+    assert pending_import.store_id == STORE_ID
+    assert pending_import.date == purchased_at
+    assert pending_import.total_value == Decimal("15.01")
+    assert pending_import.source_pdf == "notas/compra.pdf"
+    assert pending_import.items == (item,)
+    assert pending_import.total_items == 1
+    assert isinstance(preview, ImportPreview)
+    assert preview.store_id == STORE_ID
+    assert preview.total_value == Decimal("15.01")
+    assert preview.total_items == 1
+    assert preview.items == (item,)
+    assert not isinstance(preview.items[0], PurchaseItem)
+
+
+def test_import_preview_can_be_created_from_pending_import() -> None:
+    pending_import = PendingPurchaseImport(
+        store_id=STORE_ID,
+        date=datetime(2026, 8, 13),
+        total_value=Decimal("15.00"),
+        source_pdf="compra.pdf",
+        items=(_pending_item(),),
+    )
+
+    preview = ImportPreview.from_pending_import(pending_import)
+
+    assert preview == pending_import.preview
 
 
 def test_product_allows_optional_category() -> None:
@@ -197,6 +279,18 @@ def test_purchase_item_exposes_product_identity() -> None:
     assert product.has_same_identity_as(item)
 
 
+def test_pending_purchase_item_exposes_product_identity() -> None:
+    item = _pending_item(internal_code="123")
+    product = Product(
+        store_id=STORE_ID,
+        internal_code="123",
+        raw_name_sample="Cafe Tradicional 500g",
+    )
+
+    assert product_identity_from(item) == product.identity
+    assert product.has_same_identity_as(item)
+
+
 def test_category_allows_optional_parent() -> None:
     category = Category(
         store_id=str(STORE_ID),
@@ -238,11 +332,22 @@ def test_ensure_same_store_accepts_related_domain_objects() -> None:
         raw_name_sample="Cafe",
     )
     category = Category(store_id=STORE_ID, id=CATEGORY_ID, name="Mercearia")
+    pending_item = _pending_item()
+    pending_import = PendingPurchaseImport(
+        store_id=STORE_ID,
+        date=datetime(2026, 8, 13),
+        total_value=Decimal("15.00"),
+        source_pdf="compra.pdf",
+        items=(pending_item,),
+    )
 
     assert ensure_same_store(
         store,
         purchase,
         item,
+        pending_item,
+        pending_import,
+        pending_import.preview,
         product,
         category,
         product.identity,
@@ -259,6 +364,61 @@ def test_ensure_same_store_rejects_mixed_store_boundaries() -> None:
 
     with pytest.raises(StoreBoundaryError, match="same store"):
         ensure_same_store(store, product)
+
+
+def test_pending_purchase_import_rejects_empty_items() -> None:
+    with pytest.raises(ValueError, match="items"):
+        PendingPurchaseImport(
+            store_id=STORE_ID,
+            date=datetime(2026, 8, 13),
+            total_value=Decimal("15.00"),
+            source_pdf="compra.pdf",
+            items=(),
+        )
+
+
+def test_pending_purchase_import_rejects_mixed_store_items() -> None:
+    with pytest.raises(StoreBoundaryError, match="same store"):
+        PendingPurchaseImport(
+            store_id=STORE_ID,
+            date=datetime(2026, 8, 13),
+            total_value=Decimal("15.00"),
+            source_pdf="compra.pdf",
+            items=(_pending_item(store_id=OTHER_STORE_ID),),
+        )
+
+
+def test_pending_purchase_import_rejects_confirmed_purchase_items() -> None:
+    confirmed_item = PurchaseItem(
+        purchase_id=PURCHASE_ID,
+        store_id=STORE_ID,
+        internal_code="123",
+        raw_name="Cafe",
+        quantity=Decimal("1"),
+        unit_price=Decimal("15.00"),
+        total_price=Decimal("15.00"),
+    )
+
+    with pytest.raises(TypeError, match="PendingPurchaseItem"):
+        PendingPurchaseImport(
+            store_id=STORE_ID,
+            date=datetime(2026, 8, 13),
+            total_value=Decimal("15.00"),
+            source_pdf="compra.pdf",
+            items=(confirmed_item,),
+        )
+
+
+def test_import_preview_rejects_total_items_mismatch() -> None:
+    with pytest.raises(ValueError, match="total_items"):
+        ImportPreview(
+            store_id=STORE_ID,
+            date=datetime(2026, 8, 13),
+            total_value=Decimal("15.00"),
+            total_items=2,
+            source_pdf="compra.pdf",
+            items=(_pending_item(),),
+        )
 
 
 @pytest.mark.parametrize(
@@ -295,6 +455,37 @@ def test_ensure_same_store_rejects_mixed_store_boundaries() -> None:
         lambda: Product(store_id=STORE_ID, internal_code=" ", raw_name_sample="Arroz"),
         lambda: Product(store_id=STORE_ID, internal_code="123", raw_name_sample=" "),
         lambda: Category(store_id=STORE_ID, id=CATEGORY_ID, name=" "),
+        lambda: PendingPurchaseItem(
+            store_id=STORE_ID,
+            internal_code=" ",
+            raw_name="Cafe",
+            quantity=Decimal("1"),
+            unit_price=Decimal("15.00"),
+            total_price=Decimal("15.00"),
+        ),
+        lambda: PendingPurchaseItem(
+            store_id=STORE_ID,
+            internal_code="123",
+            raw_name=" ",
+            quantity=Decimal("1"),
+            unit_price=Decimal("15.00"),
+            total_price=Decimal("15.00"),
+        ),
+        lambda: PendingPurchaseImport(
+            store_id=STORE_ID,
+            date=datetime(2026, 8, 13),
+            total_value=Decimal("15.00"),
+            source_pdf=" ",
+            items=(_pending_item(),),
+        ),
+        lambda: ImportPreview(
+            store_id=STORE_ID,
+            date=datetime(2026, 8, 13),
+            total_value=Decimal("15.00"),
+            total_items=1,
+            source_pdf=" ",
+            items=(_pending_item(),),
+        ),
     ],
 )
 def test_models_reject_empty_required_text(factory) -> None:
@@ -350,6 +541,17 @@ def test_purchase_rejects_invalid_date_and_total_items() -> None:
         )
 
 
+def test_pending_purchase_import_rejects_invalid_date() -> None:
+    with pytest.raises(TypeError):
+        PendingPurchaseImport(
+            store_id=STORE_ID,
+            date="2026-08-13",
+            total_value=Decimal("15.00"),
+            source_pdf="compra.pdf",
+            items=(_pending_item(),),
+        )
+
+
 def test_models_reject_float_decimal_inputs() -> None:
     with pytest.raises(TypeError):
         Purchase(
@@ -370,6 +572,16 @@ def test_models_reject_float_decimal_inputs() -> None:
             quantity=1.0,
             unit_price=Decimal("1.00"),
             total_price=Decimal("1.00"),
+        )
+
+    with pytest.raises(TypeError):
+        PendingPurchaseItem(
+            store_id=STORE_ID,
+            internal_code="123",
+            raw_name="Cafe",
+            quantity=1.0,
+            unit_price=Decimal("15.00"),
+            total_price=Decimal("15.00"),
         )
 
 
@@ -415,4 +627,23 @@ def test_models_reject_invalid_decimal_ranges() -> None:
             quantity=Decimal("1"),
             unit_price=Decimal("1.00"),
             total_price=Decimal("-0.01"),
+        )
+
+    with pytest.raises(ValueError):
+        PendingPurchaseImport(
+            store_id=STORE_ID,
+            date=datetime(2026, 8, 13),
+            total_value=Decimal("-0.01"),
+            source_pdf="compra.pdf",
+            items=(_pending_item(),),
+        )
+
+    with pytest.raises(ValueError):
+        PendingPurchaseItem(
+            store_id=STORE_ID,
+            internal_code="123",
+            raw_name="Cafe",
+            quantity=Decimal("0"),
+            unit_price=Decimal("15.00"),
+            total_price=Decimal("15.00"),
         )

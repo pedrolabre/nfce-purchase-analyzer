@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -193,6 +194,40 @@ class PurchaseItem:
 
 
 @dataclass(frozen=True, slots=True)
+class PendingPurchaseItem:
+    store_id: uuid.UUID
+    internal_code: str
+    raw_name: str
+    quantity: Decimal
+    unit_price: Decimal
+    total_price: Decimal
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "store_id",
+            _required_uuid(self.store_id, "store_id"),
+        )
+        object.__setattr__(
+            self,
+            "internal_code",
+            _required_text(self.internal_code, "internal_code"),
+        )
+        object.__setattr__(self, "raw_name", _required_text(self.raw_name, "raw_name"))
+        object.__setattr__(self, "quantity", _quantity(self.quantity, "quantity"))
+        object.__setattr__(self, "unit_price", _money(self.unit_price, "unit_price"))
+        object.__setattr__(
+            self,
+            "total_price",
+            _money(self.total_price, "total_price"),
+        )
+
+    @property
+    def product_identity(self) -> ProductIdentity:
+        return ProductIdentity(self.store_id, self.internal_code)
+
+
+@dataclass(frozen=True, slots=True)
 class Product:
     store_id: uuid.UUID
     internal_code: str
@@ -227,7 +262,7 @@ class Product:
 
     def has_same_identity_as(
         self,
-        other: ProductIdentity | Product | PurchaseItem,
+        other: ProductIdentity | Product | PurchaseItem | PendingPurchaseItem,
     ) -> bool:
         return self.identity == product_identity_from(other)
 
@@ -254,8 +289,128 @@ class Category:
         )
 
 
-ProductIdentityInput = ProductIdentity | Product | PurchaseItem
-StoreScoped = Store | Purchase | PurchaseItem | Product | Category | ProductIdentity
+def _pending_items(
+    value: Iterable[PendingPurchaseItem],
+    field_name: str,
+) -> tuple[PendingPurchaseItem, ...]:
+    try:
+        items = tuple(value)
+    except TypeError as exc:
+        raise TypeError(f"{field_name} must be an iterable of pending items") from exc
+
+    if not items:
+        raise ValueError(f"{field_name} must not be empty")
+
+    for item in items:
+        if not isinstance(item, PendingPurchaseItem):
+            raise TypeError(f"{field_name} must contain only PendingPurchaseItem")
+
+    return items
+
+
+@dataclass(frozen=True, slots=True)
+class PendingPurchaseImport:
+    store_id: uuid.UUID
+    date: datetime
+    total_value: Decimal
+    source_pdf: str
+    items: tuple[PendingPurchaseItem, ...]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "store_id",
+            _required_uuid(self.store_id, "store_id"),
+        )
+        object.__setattr__(self, "date", _required_datetime(self.date, "date"))
+        object.__setattr__(
+            self,
+            "total_value",
+            _money(self.total_value, "total_value"),
+        )
+        object.__setattr__(
+            self,
+            "source_pdf",
+            _required_text(self.source_pdf, "source_pdf"),
+        )
+        object.__setattr__(self, "items", _pending_items(self.items, "items"))
+        ensure_same_store(self, *self.items)
+
+    @property
+    def total_items(self) -> int:
+        return len(self.items)
+
+    @property
+    def preview(self) -> ImportPreview:
+        return ImportPreview.from_pending_import(self)
+
+
+@dataclass(frozen=True, slots=True)
+class ImportPreview:
+    store_id: uuid.UUID
+    date: datetime
+    total_value: Decimal
+    total_items: int
+    source_pdf: str
+    items: tuple[PendingPurchaseItem, ...]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "store_id",
+            _required_uuid(self.store_id, "store_id"),
+        )
+        object.__setattr__(self, "date", _required_datetime(self.date, "date"))
+        object.__setattr__(
+            self,
+            "total_value",
+            _money(self.total_value, "total_value"),
+        )
+        object.__setattr__(
+            self,
+            "total_items",
+            _positive_int(self.total_items, "total_items"),
+        )
+        object.__setattr__(
+            self,
+            "source_pdf",
+            _required_text(self.source_pdf, "source_pdf"),
+        )
+        object.__setattr__(self, "items", _pending_items(self.items, "items"))
+        if self.total_items != len(self.items):
+            raise ValueError("total_items must match the number of pending items")
+        ensure_same_store(self, *self.items)
+
+    @classmethod
+    def from_pending_import(
+        cls,
+        pending_import: PendingPurchaseImport,
+    ) -> ImportPreview:
+        if not isinstance(pending_import, PendingPurchaseImport):
+            raise TypeError("pending_import must be a PendingPurchaseImport")
+
+        return cls(
+            store_id=pending_import.store_id,
+            date=pending_import.date,
+            total_value=pending_import.total_value,
+            total_items=pending_import.total_items,
+            source_pdf=pending_import.source_pdf,
+            items=pending_import.items,
+        )
+
+
+ProductIdentityInput = ProductIdentity | Product | PurchaseItem | PendingPurchaseItem
+StoreScoped = (
+    Store
+    | Purchase
+    | PurchaseItem
+    | PendingPurchaseItem
+    | PendingPurchaseImport
+    | ImportPreview
+    | Product
+    | Category
+    | ProductIdentity
+)
 
 
 def product_identity_from(value: ProductIdentityInput) -> ProductIdentity:
@@ -263,15 +418,30 @@ def product_identity_from(value: ProductIdentityInput) -> ProductIdentity:
         return value
     if isinstance(value, Product):
         return value.identity
-    if isinstance(value, PurchaseItem):
+    if isinstance(value, (PurchaseItem, PendingPurchaseItem)):
         return value.product_identity
-    raise TypeError("value must be a ProductIdentity, Product, or PurchaseItem")
+    raise TypeError(
+        "value must be a ProductIdentity, Product, PurchaseItem, "
+        "or PendingPurchaseItem"
+    )
 
 
 def _store_id_for(value: StoreScoped) -> uuid.UUID:
     if isinstance(value, Store):
         return value.id
-    if isinstance(value, (Purchase, PurchaseItem, Product, Category, ProductIdentity)):
+    if isinstance(
+        value,
+        (
+            Purchase,
+            PurchaseItem,
+            PendingPurchaseItem,
+            PendingPurchaseImport,
+            ImportPreview,
+            Product,
+            Category,
+            ProductIdentity,
+        ),
+    ):
         return value.store_id
     raise TypeError("value must be a store-scoped domain object")
 
@@ -293,6 +463,9 @@ def ensure_same_store(*values: StoreScoped) -> uuid.UUID:
 
 __all__ = [
     "Category",
+    "ImportPreview",
+    "PendingPurchaseImport",
+    "PendingPurchaseItem",
     "Product",
     "ProductIdentity",
     "Purchase",

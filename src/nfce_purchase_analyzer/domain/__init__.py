@@ -2,6 +2,9 @@
 
 from nfce_purchase_analyzer.domain.models import (
     Category,
+    ImportPreview,
+    PendingPurchaseImport,
+    PendingPurchaseItem,
     Product,
     ProductIdentity,
     Purchase,
@@ -14,6 +17,9 @@ from nfce_purchase_analyzer.domain.models import (
 
 __all__ = [
     "Category",
+    "ImportPreview",
+    "PendingPurchaseImport",
+    "PendingPurchaseItem",
     "Product",
     "ProductIdentity",
     "Purchase",
