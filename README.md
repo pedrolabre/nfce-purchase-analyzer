@@ -73,8 +73,12 @@ Estrutura pública atual:
 ├── src/
 │   └── nfce_purchase_analyzer/
 │       ├── __init__.py
-│       └── deterministic.py
+│       ├── deterministic.py
+│       └── domain/
+│           ├── __init__.py
+│           └── models.py
 └── tests/
+    ├── test_domain.py
     ├── test_deterministic.py
     └── test_package.py
 ```
