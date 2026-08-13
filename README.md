@@ -38,6 +38,16 @@ O foco do MVP é análise de compras de supermercado, com suporte inicial planej
 - CSV para exportação de análises.
 - pytest para testes automatizados.
 
+## Testes
+
+Com o `pytest` disponível no ambiente local, execute:
+
+```powershell
+python -m pytest
+```
+
+O projeto define a configuração mínima do pytest em `pyproject.toml` para o layout `src`.
+
 ## Ordem de Desenvolvimento
 
 O desenvolvimento seguirá uma abordagem incremental e rastreável:
@@ -60,9 +70,11 @@ Estrutura pública atual:
 .
 ├── README.md
 ├── pyproject.toml
-└── src/
-    └── nfce_purchase_analyzer/
-        └── __init__.py
+├── src/
+│   └── nfce_purchase_analyzer/
+│       └── __init__.py
+└── tests/
+    └── test_package.py
 ```
 
 Arquivos internos de planejamento e rastreabilidade existem apenas no ambiente local de desenvolvimento e não fazem parte da estrutura pública versionada.
