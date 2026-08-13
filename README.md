@@ -1,8 +1,8 @@
 # NFC-e Purchase Analyzer
 
-O **NFC-e Purchase Analyzer** é um projeto em fase inicial de planejamento para uma aplicação desktop local-first de análise de compras a partir de PDFs de NFC-e.
+O **NFC-e Purchase Analyzer** é um projeto em fase inicial para uma aplicação desktop local-first de análise de compras a partir de PDFs de NFC-e.
 
-Ainda não há implementação executável neste repositório. O desenvolvimento será incremental, começando pelas fundações do domínio, contratos de parsing, persistência local e testes antes da construção da interface gráfica.
+O repositório já contém a estrutura Python mínima do pacote, ainda sem implementação funcional de domínio, parsing, persistência, análise, CLI ou interface gráfica. O desenvolvimento será incremental, começando pelas fundações do domínio, contratos de parsing, persistência local e testes antes da construção da interface gráfica.
 
 ## Objetivo
 
@@ -54,11 +54,15 @@ O desenvolvimento seguirá uma abordagem incremental e rastreável:
 
 ## Estrutura do Projeto
 
-Estrutura pública inicial prevista para o primeiro commit:
+Estrutura pública atual:
 
 ```text
 .
-└── README.md
+├── README.md
+├── pyproject.toml
+└── src/
+    └── nfce_purchase_analyzer/
+        └── __init__.py
 ```
 
-Arquivos internos de planejamento e rastreabilidade existem apenas no ambiente local de desenvolvimento e não fazem parte da estrutura pública inicial.
+Arquivos internos de planejamento e rastreabilidade existem apenas no ambiente local de desenvolvimento e não fazem parte da estrutura pública versionada.
