@@ -7,12 +7,17 @@ import pytest
 from nfce_purchase_analyzer.domain import (
     Category,
     Product,
+    ProductIdentity,
     Purchase,
     PurchaseItem,
     Store,
+    StoreBoundaryError,
+    ensure_same_store,
+    product_identity_from,
 )
 
 STORE_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
+OTHER_STORE_ID = uuid.UUID("11111111-1111-1111-1111-111111111112")
 PURCHASE_ID = uuid.UUID("22222222-2222-2222-2222-222222222222")
 CATEGORY_ID = uuid.UUID("33333333-3333-3333-3333-333333333333")
 PARENT_CATEGORY_ID = uuid.UUID("44444444-4444-4444-4444-444444444444")
@@ -90,6 +95,108 @@ def test_product_allows_optional_category() -> None:
     assert uncategorized.category_id is None
 
 
+def test_product_identity_normalizes_values() -> None:
+    identity = ProductIdentity(
+        store_id=str(STORE_ID).upper(),
+        internal_code=" 7891000100103 ",
+    )
+
+    assert identity.store_id == STORE_ID
+    assert identity.internal_code == "7891000100103"
+
+
+def test_products_in_same_store_with_same_code_share_identity() -> None:
+    first = Product(
+        store_id=STORE_ID,
+        internal_code="7891000100103",
+        raw_name_sample="Arroz Branco 5kg",
+    )
+    second = Product(
+        store_id=STORE_ID,
+        internal_code=" 7891000100103 ",
+        raw_name_sample="Arroz Tipo 1 5kg",
+    )
+
+    assert first.identity == ProductIdentity(
+        store_id=STORE_ID,
+        internal_code="7891000100103",
+    )
+    assert first.identity == second.identity
+    assert first.has_same_identity_as(second)
+
+
+def test_product_identity_ignores_raw_name_sample() -> None:
+    first = Product(
+        store_id=STORE_ID,
+        internal_code="123",
+        raw_name_sample="Banana KG",
+    )
+    second = Product(
+        store_id=STORE_ID,
+        internal_code="123",
+        raw_name_sample="Banana Prata KG",
+    )
+
+    assert first.raw_name_sample != second.raw_name_sample
+    assert first.identity == second.identity
+
+
+def test_products_from_different_stores_do_not_share_identity() -> None:
+    first = Product(
+        store_id=STORE_ID,
+        internal_code="123",
+        raw_name_sample="Leite Integral",
+    )
+    second = Product(
+        store_id=OTHER_STORE_ID,
+        internal_code="123",
+        raw_name_sample="Leite Integral",
+    )
+
+    assert first.identity != second.identity
+    assert not first.has_same_identity_as(second)
+
+
+def test_products_with_different_codes_do_not_share_identity() -> None:
+    first = Product(
+        store_id=STORE_ID,
+        internal_code="123",
+        raw_name_sample="Cafe",
+    )
+    second = Product(
+        store_id=STORE_ID,
+        internal_code="124",
+        raw_name_sample="Cafe",
+    )
+
+    assert first.identity != second.identity
+    assert not first.has_same_identity_as(second)
+
+
+def test_purchase_item_exposes_product_identity() -> None:
+    item = PurchaseItem(
+        purchase_id=PURCHASE_ID,
+        store_id=STORE_ID,
+        internal_code="123",
+        raw_name="Cafe Torrado 500g",
+        quantity=Decimal("1"),
+        unit_price=Decimal("15.00"),
+        total_price=Decimal("15.00"),
+    )
+    product = Product(
+        store_id=STORE_ID,
+        internal_code="123",
+        raw_name_sample="Cafe Tradicional 500g",
+    )
+
+    assert item.product_identity == ProductIdentity(
+        store_id=STORE_ID,
+        internal_code="123",
+    )
+    assert product_identity_from(item) == product.identity
+    assert product.has_same_identity_as(item)
+
+
 def test_category_allows_optional_parent() -> None:
     category = Category(
         store_id=str(STORE_ID),
@@ -104,6 +211,54 @@ def test_category_allows_optional_parent() -> None:
     assert category.name == "Hortifruti"
     assert category.parent_id == PARENT_CATEGORY_ID
     assert root.parent_id is None
+
+
+def test_ensure_same_store_accepts_related_domain_objects() -> None:
+    store = Store(id=STORE_ID, code="0001", name="Bem Maior")
+    purchase = Purchase(
+        id=PURCHASE_ID,
+        store_id=STORE_ID,
+        date=datetime(2026, 8, 13),
+        total_value=Decimal("15.00"),
+        total_items=1,
+        source_pdf="compra.pdf",
+    )
+    item = PurchaseItem(
+        purchase_id=PURCHASE_ID,
+        store_id=STORE_ID,
+        internal_code="123",
+        raw_name="Cafe",
+        quantity=Decimal("1"),
+        unit_price=Decimal("15.00"),
+        total_price=Decimal("15.00"),
+    )
+    product = Product(
+        store_id=STORE_ID,
+        internal_code="123",
+        raw_name_sample="Cafe",
+    )
+    category = Category(store_id=STORE_ID, id=CATEGORY_ID, name="Mercearia")
+
+    assert ensure_same_store(
+        store,
+        purchase,
+        item,
+        product,
+        category,
+        product.identity,
+    ) == STORE_ID
+
+
+def test_ensure_same_store_rejects_mixed_store_boundaries() -> None:
+    store = Store(id=STORE_ID, code="0001", name="Bem Maior")
+    product = Product(
+        store_id=OTHER_STORE_ID,
+        internal_code="123",
+        raw_name_sample="Cafe",
+    )
+
+    with pytest.raises(StoreBoundaryError, match="same store"):
+        ensure_same_store(store, product)
 
 
 @pytest.mark.parametrize(

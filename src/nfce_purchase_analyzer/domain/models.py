@@ -84,6 +84,28 @@ def _quantity(value: DecimalInput, field_name: str) -> Decimal:
     return quantity
 
 
+class StoreBoundaryError(ValueError):
+    """Raised when related domain objects belong to different stores."""
+
+
+@dataclass(frozen=True, slots=True)
+class ProductIdentity:
+    store_id: uuid.UUID
+    internal_code: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "store_id",
+            _required_uuid(self.store_id, "store_id"),
+        )
+        object.__setattr__(
+            self,
+            "internal_code",
+            _required_text(self.internal_code, "internal_code"),
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class Store:
     id: uuid.UUID
@@ -165,6 +187,10 @@ class PurchaseItem:
             _money(self.total_price, "total_price"),
         )
 
+    @property
+    def product_identity(self) -> ProductIdentity:
+        return ProductIdentity(self.store_id, self.internal_code)
+
 
 @dataclass(frozen=True, slots=True)
 class Product:
@@ -195,6 +221,16 @@ class Product:
             _optional_uuid(self.category_id, "category_id"),
         )
 
+    @property
+    def identity(self) -> ProductIdentity:
+        return ProductIdentity(self.store_id, self.internal_code)
+
+    def has_same_identity_as(
+        self,
+        other: ProductIdentity | Product | PurchaseItem,
+    ) -> bool:
+        return self.identity == product_identity_from(other)
+
 
 @dataclass(frozen=True, slots=True)
 class Category:
@@ -218,10 +254,51 @@ class Category:
         )
 
 
+ProductIdentityInput = ProductIdentity | Product | PurchaseItem
+StoreScoped = Store | Purchase | PurchaseItem | Product | Category | ProductIdentity
+
+
+def product_identity_from(value: ProductIdentityInput) -> ProductIdentity:
+    if isinstance(value, ProductIdentity):
+        return value
+    if isinstance(value, Product):
+        return value.identity
+    if isinstance(value, PurchaseItem):
+        return value.product_identity
+    raise TypeError("value must be a ProductIdentity, Product, or PurchaseItem")
+
+
+def _store_id_for(value: StoreScoped) -> uuid.UUID:
+    if isinstance(value, Store):
+        return value.id
+    if isinstance(value, (Purchase, PurchaseItem, Product, Category, ProductIdentity)):
+        return value.store_id
+    raise TypeError("value must be a store-scoped domain object")
+
+
+def ensure_same_store(*values: StoreScoped) -> uuid.UUID:
+    if not values:
+        raise ValueError("at least one domain object is required")
+
+    expected_store_id = _store_id_for(values[0])
+    for value in values[1:]:
+        current_store_id = _store_id_for(value)
+        if current_store_id != expected_store_id:
+            raise StoreBoundaryError(
+                "related domain objects must belong to the same store"
+            )
+
+    return expected_store_id
+
+
 __all__ = [
     "Category",
     "Product",
+    "ProductIdentity",
     "Purchase",
     "PurchaseItem",
     "Store",
+    "StoreBoundaryError",
+    "ensure_same_store",
+    "product_identity_from",
 ]
