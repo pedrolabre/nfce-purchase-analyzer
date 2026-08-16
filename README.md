@@ -74,13 +74,17 @@ Estrutura pública atual:
 │   └── nfce_purchase_analyzer/
 │       ├── __init__.py
 │       ├── deterministic.py
-│       └── domain/
+│       ├── domain/
+│       │   ├── __init__.py
+│       │   └── models.py
+│       └── parsing/
 │           ├── __init__.py
-│           └── models.py
+│           └── contracts.py
 └── tests/
     ├── test_domain.py
     ├── test_deterministic.py
-    └── test_package.py
+    ├── test_package.py
+    └── test_parsing.py
 ```
 
 Arquivos internos de planejamento e rastreabilidade existem apenas no ambiente local de desenvolvimento e não fazem parte da estrutura pública versionada.
