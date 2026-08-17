@@ -12,6 +12,7 @@ from nfce_purchase_analyzer.parsing.contracts import (
     ParserLayout,
     ParserRegistry,
 )
+from nfce_purchase_analyzer.parsing.validation import validate_purchase_total
 
 __all__ = [
     "BEM_MAIOR_STORE_ID",
@@ -22,4 +23,5 @@ __all__ = [
     "ParseResult",
     "ParserLayout",
     "ParserRegistry",
+    "validate_purchase_total",
 ]

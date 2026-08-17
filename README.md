@@ -81,14 +81,17 @@ Estrutura pública atual:
 │           ├── __init__.py
 │           ├── bem_maior.py
 │           ├── contracts.py
-│           └── pdf_reader.py
+│           ├── pdf_reader.py
+│           └── validation.py
 └── tests/
     ├── test_bem_maior_parser.py
     ├── test_deterministic.py
     ├── test_domain.py
     ├── test_package.py
     ├── test_parsing.py
-    └── test_pdf_reader.py
+    ├── test_pdf_reader.py
+    └── test_validation.py
 ```
 
 Arquivos internos de planejamento e rastreabilidade existem apenas no ambiente local de desenvolvimento e não fazem parte da estrutura pública versionada.
+

@@ -19,6 +19,7 @@ from nfce_purchase_analyzer.parsing.contracts import (
     ParseResult,
     ParserLayout,
 )
+from nfce_purchase_analyzer.parsing.validation import validate_purchase_total
 
 # ---------------------------------------------------------------------------
 # Store identity
@@ -403,6 +404,10 @@ class BemMaiorParser:
             source_pdf=source_pdf,
             items=tuple(items),
         )
+
+        # Mathematical validation of item totals vs declared total
+        validation_diagnostics = validate_purchase_total(pending_import)
+        diagnostics.extend(validation_diagnostics)
 
         return ParseResult(
             pending_import=pending_import,
