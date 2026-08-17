@@ -79,9 +79,11 @@ Estrutura pública atual:
 │       │   └── models.py
 │       └── parsing/
 │           ├── __init__.py
+│           ├── bem_maior.py
 │           ├── contracts.py
 │           └── pdf_reader.py
 └── tests/
+    ├── test_bem_maior_parser.py
     ├── test_deterministic.py
     ├── test_domain.py
     ├── test_package.py
