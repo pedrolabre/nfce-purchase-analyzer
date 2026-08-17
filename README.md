@@ -79,12 +79,14 @@ Estrutura pública atual:
 │       │   └── models.py
 │       └── parsing/
 │           ├── __init__.py
-│           └── contracts.py
+│           ├── contracts.py
+│           └── pdf_reader.py
 └── tests/
-    ├── test_domain.py
     ├── test_deterministic.py
+    ├── test_domain.py
     ├── test_package.py
-    └── test_parsing.py
+    ├── test_parsing.py
+    └── test_pdf_reader.py
 ```
 
 Arquivos internos de planejamento e rastreabilidade existem apenas no ambiente local de desenvolvimento e não fazem parte da estrutura pública versionada.

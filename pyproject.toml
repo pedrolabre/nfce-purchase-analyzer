@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Local-first desktop analyzer for NFC-e purchase PDFs."
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["pdfplumber>=0.11"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
