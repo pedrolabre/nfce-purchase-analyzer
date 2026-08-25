@@ -84,10 +84,14 @@ Estrutura pública atual:
 │           ├── pdf_reader.py
 │           └── validation.py
 └── tests/
+    ├── fixtures/
+    │   ├── __init__.py
+    │   └── pdf_builder.py
     ├── test_bem_maior_parser.py
     ├── test_deterministic.py
     ├── test_domain.py
     ├── test_package.py
+    ├── test_parser_integration.py
     ├── test_parsing.py
     ├── test_pdf_reader.py
     └── test_validation.py
