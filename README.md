@@ -77,12 +77,16 @@ Estrutura pública atual:
 │       ├── domain/
 │       │   ├── __init__.py
 │       │   └── models.py
-│       └── parsing/
+│       ├── parsing/
+│       │   ├── __init__.py
+│       │   ├── bem_maior.py
+│       │   ├── contracts.py
+│       │   ├── pdf_reader.py
+│       │   └── validation.py
+│       └── persistence/
 │           ├── __init__.py
-│           ├── bem_maior.py
-│           ├── contracts.py
-│           ├── pdf_reader.py
-│           └── validation.py
+│           ├── paths.py
+│           └── schemas.py
 └── tests/
     ├── fixtures/
     │   ├── __init__.py
@@ -94,6 +98,7 @@ Estrutura pública atual:
     ├── test_parser_integration.py
     ├── test_parsing.py
     ├── test_pdf_reader.py
+    ├── test_storage_layout.py
     └── test_validation.py
 ```
 
