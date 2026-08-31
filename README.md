@@ -86,7 +86,8 @@ Estrutura pública atual:
 │       └── persistence/
 │           ├── __init__.py
 │           ├── paths.py
-│           └── schemas.py
+│           ├── schemas.py
+│           └── stores.py
 └── tests/
     ├── fixtures/
     │   ├── __init__.py
@@ -99,6 +100,7 @@ Estrutura pública atual:
     ├── test_parsing.py
     ├── test_pdf_reader.py
     ├── test_storage_layout.py
+    ├── test_store_repository.py
     └── test_validation.py
 ```
 

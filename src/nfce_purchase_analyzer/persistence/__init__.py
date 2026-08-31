@@ -15,9 +15,11 @@ from nfce_purchase_analyzer.persistence.schemas import (
     store_to_dict,
     write_json,
 )
+from nfce_purchase_analyzer.persistence.stores import StoreRepository
 
 __all__ = [
     "StorageLayout",
+    "StoreRepository",
     "category_to_dict",
     "dict_to_category",
     "dict_to_product",
