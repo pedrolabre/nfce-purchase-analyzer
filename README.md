@@ -85,6 +85,7 @@ Estrutura pública atual:
 │       │   └── validation.py
 │       └── persistence/
 │           ├── __init__.py
+│           ├── categories.py
 │           ├── paths.py
 │           ├── products.py
 │           ├── purchases.py
@@ -95,6 +96,7 @@ Estrutura pública atual:
     │   ├── __init__.py
     │   └── pdf_builder.py
     ├── test_bem_maior_parser.py
+    ├── test_category_repository.py
     ├── test_deterministic.py
     ├── test_domain.py
     ├── test_package.py

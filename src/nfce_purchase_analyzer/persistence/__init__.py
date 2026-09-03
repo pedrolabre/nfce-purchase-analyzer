@@ -1,5 +1,6 @@
 """Local persistence layer for the NFC-e analyzer core."""
 
+from nfce_purchase_analyzer.persistence.categories import CategoryRepository
 from nfce_purchase_analyzer.persistence.paths import StorageLayout
 from nfce_purchase_analyzer.persistence.products import ProductRepository
 from nfce_purchase_analyzer.persistence.purchases import PurchaseRepository
@@ -20,6 +21,7 @@ from nfce_purchase_analyzer.persistence.schemas import (
 from nfce_purchase_analyzer.persistence.stores import StoreRepository
 
 __all__ = [
+    "CategoryRepository",
     "ProductRepository",
     "PurchaseRepository",
     "StorageLayout",
