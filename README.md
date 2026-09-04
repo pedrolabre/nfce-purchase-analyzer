@@ -86,6 +86,7 @@ Estrutura pública atual:
 │       └── persistence/
 │           ├── __init__.py
 │           ├── categories.py
+│           ├── import_service.py
 │           ├── paths.py
 │           ├── products.py
 │           ├── purchases.py
@@ -99,6 +100,7 @@ Estrutura pública atual:
     ├── test_category_repository.py
     ├── test_deterministic.py
     ├── test_domain.py
+    ├── test_import_service.py
     ├── test_package.py
     ├── test_parser_integration.py
     ├── test_parsing.py
