@@ -75,7 +75,8 @@ Estrutura pública atual:
 │       ├── __init__.py
 │       ├── analysis/
 │       │   ├── __init__.py
-│       │   └── selection.py
+│       │   ├── selection.py
+│       │   └── summary.py
 │       ├── deterministic.py
 │       ├── domain/
 │       │   ├── __init__.py
@@ -100,6 +101,7 @@ Estrutura pública atual:
     │   ├── __init__.py
     │   └── pdf_builder.py
     ├── test_analysis_selection.py
+    ├── test_analysis_summary.py
     ├── test_bem_maior_parser.py
     ├── test_category_repository.py
     ├── test_deterministic.py
