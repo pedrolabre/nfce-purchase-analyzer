@@ -7,6 +7,11 @@ from nfce_purchase_analyzer.analysis.selection import (
     PurchaseAnalysisSelection,
     select_purchases_for_analysis,
 )
+from nfce_purchase_analyzer.analysis.historical_variation import (
+    HistoricalPriceVariationEntry,
+    HistoricalPriceVariationResult,
+    calculate_historical_price_variation,
+)
 from nfce_purchase_analyzer.analysis.summary import (
     PurchaseAnalysisSummary,
     summarize_selected_purchases,
@@ -14,10 +19,13 @@ from nfce_purchase_analyzer.analysis.summary import (
 
 __all__ = [
     "AnalysisSelectionError",
+    "HistoricalPriceVariationEntry",
+    "HistoricalPriceVariationResult",
     "InsufficientPurchasesError",
     "MixedStoreSelectionError",
     "PurchaseAnalysisSelection",
     "PurchaseAnalysisSummary",
+    "calculate_historical_price_variation",
     "select_purchases_for_analysis",
     "summarize_selected_purchases",
 ]

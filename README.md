@@ -75,6 +75,7 @@ Estrutura pública atual:
 │       ├── __init__.py
 │       ├── analysis/
 │       │   ├── __init__.py
+│       │   ├── historical_variation.py
 │       │   ├── selection.py
 │       │   └── summary.py
 │       ├── deterministic.py
@@ -100,6 +101,7 @@ Estrutura pública atual:
     ├── fixtures/
     │   ├── __init__.py
     │   └── pdf_builder.py
+    ├── test_analysis_historical_price_variation.py
     ├── test_analysis_selection.py
     ├── test_analysis_summary.py
     ├── test_bem_maior_parser.py
