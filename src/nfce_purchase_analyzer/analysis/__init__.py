@@ -16,6 +16,10 @@ from nfce_purchase_analyzer.analysis.summary import (
     PurchaseAnalysisSummary,
     summarize_selected_purchases,
 )
+from nfce_purchase_analyzer.analysis.csv_export import (
+    export_analysis_summary_csv,
+    export_historical_price_variation_csv,
+)
 
 __all__ = [
     "AnalysisSelectionError",
@@ -25,6 +29,8 @@ __all__ = [
     "MixedStoreSelectionError",
     "PurchaseAnalysisSelection",
     "PurchaseAnalysisSummary",
+    "export_analysis_summary_csv",
+    "export_historical_price_variation_csv",
     "calculate_historical_price_variation",
     "select_purchases_for_analysis",
     "summarize_selected_purchases",

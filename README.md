@@ -76,6 +76,7 @@ Estrutura pública atual:
 │       ├── analysis/
 │       │   ├── __init__.py
 │       │   ├── historical_variation.py
+│       │   ├── csv_export.py
 │       │   ├── selection.py
 │       │   └── summary.py
 │       ├── deterministic.py
@@ -102,6 +103,7 @@ Estrutura pública atual:
     │   ├── __init__.py
     │   └── pdf_builder.py
     ├── test_analysis_historical_price_variation.py
+    ├── test_analysis_csv_export.py
     ├── test_analysis_selection.py
     ├── test_analysis_summary.py
     ├── test_bem_maior_parser.py
