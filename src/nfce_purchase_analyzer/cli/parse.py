@@ -95,6 +95,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Caminho local para o PDF da NFC-e.",
     )
     parse_parser.set_defaults(handler=_handle_parse_command)
+
+    from nfce_purchase_analyzer.cli.import_cmd import register_import_subcommand
+    register_import_subcommand(subparsers)
+
     return parser
 
 

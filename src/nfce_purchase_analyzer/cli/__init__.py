@@ -1,5 +1,9 @@
 """Command-line entry points for the NFC-e analyzer."""
 
+from nfce_purchase_analyzer.cli.import_cmd import (
+    handle_import_command,
+    register_import_subcommand,
+)
 from nfce_purchase_analyzer.cli.parse import (
     build_parser,
     main,
@@ -9,7 +13,9 @@ from nfce_purchase_analyzer.cli.parse import (
 
 __all__ = [
     "build_parser",
+    "handle_import_command",
     "main",
     "parse_pdf",
+    "register_import_subcommand",
     "render_parse_report",
 ]

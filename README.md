@@ -2,7 +2,7 @@
 
 O **NFC-e Purchase Analyzer** é um projeto em fase inicial para uma aplicação desktop local-first de análise de compras a partir de PDFs de NFC-e.
 
-O repositório já contém a estrutura Python do pacote e as camadas de domínio, parsing, persistência, análise e um CLI de diagnóstico para parse local, ainda sem interface gráfica. O desenvolvimento será incremental, começando pelas fundações do domínio, contratos de parsing, persistência local, análise, CLI e testes antes da construção da interface gráfica.
+O repositório já contém a estrutura Python do pacote e as camadas de domínio, parsing, persistência, análise e um CLI de diagnóstico para parse local e importação confirmada, ainda sem interface gráfica. O desenvolvimento será incremental, começando pelas fundações do domínio, contratos de parsing, persistência local, análise, CLI e testes antes da construção da interface gráfica.
 
 ## Objetivo
 
@@ -82,6 +82,7 @@ Estrutura pública atual:
 │       ├── cli/
 │       │   ├── __init__.py
 │       │   ├── __main__.py
+│       │   ├── import_cmd.py
 │       │   └── parse.py
 │       ├── deterministic.py
 │       ├── domain/
@@ -112,6 +113,8 @@ Estrutura pública atual:
     ├── test_analysis_summary.py
     ├── test_bem_maior_parser.py
     ├── test_category_repository.py
+    ├── test_cli_import.py
+    ├── test_cli_parse.py
     ├── test_deterministic.py
     ├── test_domain.py
     ├── test_import_service.py
