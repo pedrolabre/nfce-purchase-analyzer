@@ -99,6 +99,9 @@ def build_parser() -> argparse.ArgumentParser:
     from nfce_purchase_analyzer.cli.import_cmd import register_import_subcommand
     register_import_subcommand(subparsers)
 
+    from nfce_purchase_analyzer.cli.report_cmd import register_report_subcommand
+    register_report_subcommand(subparsers)
+
     return parser
 
 
