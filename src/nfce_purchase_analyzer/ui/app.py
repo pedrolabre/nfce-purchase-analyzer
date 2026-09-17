@@ -3,15 +3,19 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 from typing import Sequence
 
 from PySide6.QtWidgets import QApplication
 
+from nfce_purchase_analyzer.persistence.paths import StorageLayout
+from nfce_purchase_analyzer.persistence.stores import StoreRepository
 from nfce_purchase_analyzer.ui.main_window import MainWindow
 
 
 def create_app(
     argv: Sequence[str] | None = None,
+    data_dir: Path | None = None,
 ) -> tuple[QApplication, MainWindow]:
     """Create the QApplication and MainWindow instances.
 
@@ -21,6 +25,8 @@ def create_app(
     Args:
         argv: Command-line arguments forwarded to ``QApplication``.
               Defaults to ``sys.argv`` when *None*.
+        data_dir: Root directory for local data storage.
+                  Defaults to the current working directory when *None*.
 
     Returns:
         A ``(app, window)`` tuple ready for display and event-loop execution.
@@ -32,7 +38,12 @@ def create_app(
     if app is None:
         app = QApplication(list(argv))
 
-    window = MainWindow()
+    if data_dir is None:
+        data_dir = Path.cwd()
+
+    layout = StorageLayout(data_dir.resolve())
+    store_repo = StoreRepository(layout)
+    window = MainWindow(store_repo=store_repo)
     return app, window
 
 

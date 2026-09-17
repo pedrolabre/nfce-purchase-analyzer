@@ -107,7 +107,9 @@ Estrutura pública atual:
 │       └── ui/
 │           ├── __init__.py
 │           ├── app.py
-│           └── main_window.py
+│           ├── home_screen.py
+│           ├── main_window.py
+│           └── new_store_dialog.py
 └── tests/
     ├── fixtures/
     │   ├── __init__.py
@@ -132,6 +134,7 @@ Estrutura pública atual:
     ├── test_purchase_repository.py
     ├── test_storage_layout.py
     ├── test_store_repository.py
+    ├── test_ui_home_screen.py
     ├── test_ui_main_window.py
     └── test_validation.py
 ```
