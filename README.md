@@ -95,15 +95,19 @@ Estrutura pública atual:
 │       │   ├── contracts.py
 │       │   ├── pdf_reader.py
 │       │   └── validation.py
-│       └── persistence/
+│       ├── persistence/
+│       │   ├── __init__.py
+│       │   ├── categories.py
+│       │   ├── import_service.py
+│       │   ├── paths.py
+│       │   ├── products.py
+│       │   ├── purchases.py
+│       │   ├── schemas.py
+│       │   └── stores.py
+│       └── ui/
 │           ├── __init__.py
-│           ├── categories.py
-│           ├── import_service.py
-│           ├── paths.py
-│           ├── products.py
-│           ├── purchases.py
-│           ├── schemas.py
-│           └── stores.py
+│           ├── app.py
+│           └── main_window.py
 └── tests/
     ├── fixtures/
     │   ├── __init__.py
@@ -128,6 +132,7 @@ Estrutura pública atual:
     ├── test_purchase_repository.py
     ├── test_storage_layout.py
     ├── test_store_repository.py
+    ├── test_ui_main_window.py
     └── test_validation.py
 ```
 

@@ -8,10 +8,11 @@ version = "0.1.0"
 description = "Local-first desktop analyzer for NFC-e purchase PDFs."
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["pdfplumber>=0.11"]
+dependencies = ["pdfplumber>=0.11", "PySide6>=6.5"]
 
 [project.scripts]
 nfce-purchase-analyzer = "nfce_purchase_analyzer.cli:main"
+nfce-purchase-analyzer-gui = "nfce_purchase_analyzer.ui.app:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
